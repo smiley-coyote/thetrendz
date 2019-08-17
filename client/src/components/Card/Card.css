@@ -1,0 +1,23 @@
+.Card {
+  background-color: rgb(235, 235, 235);
+  width: 50%;
+  border-radius: 5px;
+  height: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+
+@media only screen and (max-width: 1000px) {
+  .Card {
+    width: 75%;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .Card {
+    width: 100%;
+  }
+}
