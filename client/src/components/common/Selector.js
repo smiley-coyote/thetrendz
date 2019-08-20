@@ -1,22 +1,15 @@
 import React from 'react';
 import './Selector.css';
 
-const Selector = ({text}) => {
-  const { selectorStyle } = styles;
+const Selector = ({text, list}) => {
+  const listOptions = list.map(item => <option value={item.value} key={item.value}>{item.name}</option>)
   return (
-    <div className='Selector' style={selectorStyle}>
-      {text}
-    </div>
+      <select>
+        <option value={text}>{text}</option>
+        {listOptions}
+      </select>
   );
 };
-
-const styles = {
-  selectorStyle: {
-    backgroundColor: 'white',
-    margin: 5,
-    padding: 5
-  }
-}
 
 export default Selector;
 

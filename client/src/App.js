@@ -6,17 +6,28 @@ import Card from './components/Card/Card';
 import Header from './components/Header/';
 import Selector from './components/common/Selector';
 import Section from './components/Section';
-
+// import Window from './components/Window';
 
 class App extends Component {
-  state = {
+  constructor(props) {
+    super(props);
+  this.state = {
     trending: [],
     timelineData: [],
-    searchQuery: ''
+    searchQuery: '',
+    selectorLists: {
+      year: this.arrayCreator(2004, 2019),
+      month: this.arrayCreator(1, 12),
+      day: this.arrayCreator(1, 31) 
+    }
   };
+  this.arrayCreator = this.arrayCreator.bind(this);
+}
+
+  
 
   componentDidMount() {
-
+    // 
   }
 
   callApi = async () => {
@@ -62,6 +73,16 @@ class App extends Component {
     })
   }
 
+  arrayCreator = (min, max) => {
+    const newArr = []
+    for(let i = min; i <= max; i++){
+      newArr.push({value:i, name:i})
+    }
+    return newArr;
+  }
+
+  
+
   render() {
     // const trendingList = this.state.trending.map(res => {
     //   return <li key={res}>{res}</li>
@@ -81,8 +102,8 @@ class App extends Component {
               alignItems: 'baseline'
             }}>
               Top google searches in
-              <Selector text={'your region'} />
-              <Selector text={'right now'} />
+              <Selector list={this.state.selectorLists.year} text={'your region'} />
+              <Selector list={this.state.selectorLists.year} text={'today'} />
             </Section>
 
             <button>Go!</button>
@@ -92,18 +113,18 @@ class App extends Component {
               textAlign: 'center'
             }}>
               <h2>Trends Over Time</h2>
-              <input style={inputStyle} placeHolder={'Bill Gates'} />
+              <input style={inputStyle} placeholder={'Bill Gates'} />
               Start Date
             <div style={formStyle}>
-                <Selector text={'Year'} />
-                <Selector text={'Month'} />
-                <Selector text={'Day'} />
+                <Selector list={this.state.selectorLists.year} text={'Year'} />
+                <Selector list={this.state.selectorLists.month} text={'Month'} />
+                <Selector list={this.state.selectorLists.day} text={'Day'} />
               </div>
               End Date
               <div style={formStyle}>
-                <Selector text={'Year'} />
-                <Selector text={'Month'} />
-                <Selector text={'Day'} />
+                <Selector list={this.state.selectorLists.year} text={'Year'} />
+                <Selector list={this.state.selectorLists.month} text={'Month'} />
+                <Selector list={this.state.selectorLists.day} text={'Day'} />
               </div>
             </Section>
             <button>Go!</button>
@@ -127,5 +148,7 @@ const styles = {
     textAlign: 'center'
   }
 }
+
+
 
 export default App;
