@@ -14,12 +14,20 @@ class App extends Component {
   this.state = {
     trending: [],
     timelineData: [],
-    searchQuery: '',
+    searchQuery: 'Bill Gates',
     selectorLists: {
       year: this.arrayCreator(2004, 2019),
       month: this.arrayCreator(1, 12),
       day: this.arrayCreator(1, 31) 
-    }
+    },
+    searchRegion: 'US',
+    searchDate: new Date(),
+    startYear: '2004',
+    startMonth: '01',
+    startDay: '01',
+    endYear: '2019',
+    endMonth: '01',
+    endDay: '01'
   };
   this.arrayCreator = this.arrayCreator.bind(this);
 }
@@ -81,6 +89,32 @@ class App extends Component {
     return newArr;
   }
 
+  handleSelector = e => {
+    const { name, value } = e.target;
+    this.setState({
+      [name]: value
+    }, () => {
+      if(name === 'startYear'){
+        const minYear = this.state.startYear
+        const newArray = this.arrayCreator(minYear, new Date().getFullYear());
+        
+        this.setState(prevState => {
+          let selectorLists = Object.assign({}, prevState.selectorLists);  // creating copy of state variable jasper
+          selectorLists.year = newArray;                     // update the name property, assign a new value                 
+          return { selectorLists };                                 // return new object jasper object
+        })
+        
+      }
+    })
+    
+    
+  }
+
+  handleSubmit = event => {
+    event.preventDefault();
+    console.log(this.state)
+  }
+
   
 
   render() {
@@ -96,14 +130,16 @@ class App extends Component {
         <Header />
         <Wrapper>
           <Card>
-            <Section style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'baseline'
-            }}>
-              Top google searches in
-              <Selector list={this.state.selectorLists.year} text={'your region'} />
-              <Selector list={this.state.selectorLists.year} text={'today'} />
+            <Section 
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'baseline',
+              }} 
+              title='Top google searches in '
+            >
+              <Selector onChange={this.handleSelector} list={this.state.selectorLists.year} name='searchRegion' text={'your region'} />
+              <Selector onChange={this.handleSelector} list={this.state.selectorLists.year} name='searchDate' text={'today'} />
             </Section>
 
             <button>Go!</button>
@@ -116,18 +152,18 @@ class App extends Component {
               <input style={inputStyle} placeholder={'Bill Gates'} />
               Start Date
             <div style={formStyle}>
-                <Selector list={this.state.selectorLists.year} text={'Year'} />
-                <Selector list={this.state.selectorLists.month} text={'Month'} />
-                <Selector list={this.state.selectorLists.day} text={'Day'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.year} name='startYear' text={'Year'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.month} name='startMonth' text={'Month'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.day} name='startDay' text={'Day'} />
               </div>
               End Date
               <div style={formStyle}>
-                <Selector list={this.state.selectorLists.year} text={'Year'} />
-                <Selector list={this.state.selectorLists.month} text={'Month'} />
-                <Selector list={this.state.selectorLists.day} text={'Day'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.year} name='endYear' text={'Year'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.month} name='endMonth' text={'Month'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.day} name='endDay' text={'Day'} />
               </div>
             </Section>
-            <button>Go!</button>
+            <button onClick={this.handleSubmit}>Go!</button>
           </Card>
         </Wrapper>
       </div>
