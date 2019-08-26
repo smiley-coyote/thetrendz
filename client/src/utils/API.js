@@ -1,10 +1,10 @@
 import axios from "axios";
 
 export default {
-  currentTrends: function() {
-    return axios.get("/api/trends");
+  currentTrends: function(data) {
+    return axios.post("/api/trends", data);
   },
-  searchQuery: function(data) {
+  trendsOvertime: function(data) {
     return axios.post("/api/search", data)
   }
 }

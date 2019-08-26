@@ -6,6 +6,9 @@ import Card from './components/Card/Card';
 import Header from './components/Header/';
 import Selector from './components/common/Selector';
 import Section from './components/Section';
+import Geos from './geos';
+import Results from './components/Results';
+import Chart from './components/Chart';
 // import Window from './components/Window';
 
 class App extends Component {
@@ -14,12 +17,20 @@ class App extends Component {
   this.state = {
     trending: [],
     timelineData: [],
-    searchQuery: 'Bill Gates',
+    pastDays: [],
+    chartData: [],
+    chartDisplay: false,
+    trendsResults: false,
     selectorLists: {
-      year: this.arrayCreator(2004, 2019),
+      startYear: this.arrayCreator(2004, new Date().getFullYear()),
+      endYear: this.arrayCreator(2004, new Date().getFullYear()),
       month: this.arrayCreator(1, 12),
-      day: this.arrayCreator(1, 31) 
+      startDay: this.arrayCreator(1, 31),
+      endDay: this.arrayCreator(1, 31),
+      pastDays: this.getDates(),
+      regions: Geos
     },
+    searchQuery: 'Bill Gates',
     searchRegion: 'US',
     searchDate: new Date(),
     startYear: '2004',
@@ -36,6 +47,27 @@ class App extends Component {
 
   componentDidMount() {
     // 
+  }
+
+  getDates = () => {
+    const present = new Date();
+      const past = new Date(present);
+      const newArr = [];
+      for(let i = 1; i <= 15; i++){
+        if(i === 1){
+          present.setDate(past.getDate() - i)
+          const arrItem = {value: present, name: 'yesterday'}
+          newArr.push(arrItem)
+        } else {
+          present.setDate(past.getDate() - i)
+          const formattedDate = this.yyyymmdd(present);
+          const fullDate = new Date().getFullYear() + '-' + formattedDate
+          const arrItem = {value: fullDate, name: formattedDate}
+          newArr.push(arrItem);
+        }
+      }
+      console.log(newArr)
+      return newArr;
   }
 
   callApi = async () => {
@@ -89,6 +121,17 @@ class App extends Component {
     return newArr;
   }
 
+  yyyymmdd = date => {
+    var d = new Date(date),
+    month = '' + (d.getMonth() + 1),
+    day = '' + d.getDate()
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [month, day].join('-');
+  }
+
   handleSelector = e => {
     const { name, value } = e.target;
     this.setState({
@@ -99,71 +142,149 @@ class App extends Component {
         const newArray = this.arrayCreator(minYear, new Date().getFullYear());
         
         this.setState(prevState => {
-          let selectorLists = Object.assign({}, prevState.selectorLists);  // creating copy of state variable jasper
-          selectorLists.year = newArray;                     // update the name property, assign a new value                 
-          return { selectorLists };                                 // return new object jasper object
+          let selectorLists = Object.assign({}, prevState.selectorLists);  
+          selectorLists.endYear = newArray;                                    
+          return { selectorLists };                                
         })
         
       }
     })
-    
-    
+  }
+
+  resetSearch = event => {
+    event.preventDefault();
+    this.setState({
+      trendsResults: false
+    })
+  }
+
+  formatChartData = data => {
+    const chartData = {
+      labels: [],
+      values: []
+    }
+    for(let i = 0; i< data.length; i++){
+      chartData.labels.push(data[i].formattedTime);
+      chartData.values.push(data[i].value[0]);
+    }
+    console.log(chartData);
+    return chartData;
   }
 
   handleSubmit = event => {
+    const { name } = event.target;
     event.preventDefault();
-    console.log(this.state)
+    if(name === 'search'){
+      const searchQuery = {date: this.state.searchDate, region: this.state.searchRegion};
+      console.log(searchQuery);
+      API.currentTrends(searchQuery).then( res => {
+        const trending = res.data.default.trendingSearchesDays[0].trendingSearches.map(item => item.title.query)
+        console.log(trending)
+        this.setState({ trending: trending, trendsResults: true })
+      })
+    }
+    if(name === 'timeline'){
+      const {searchQuery, startYear, 
+        startMonth, startDay, 
+        endYear, endMonth,
+      endDay} = this.state;
+      const searchBody = {
+        keyword: searchQuery,
+        startTime: startYear + '-' + startMonth + '-' + startDay,
+        endTime: endYear + '-' + endMonth + '-' + endDay
+      }
+      API.trendsOvertime(searchBody).then( res => {
+        const chartData = this.formatChartData(res.data.default.timelineData);
+        
+          this.setState({
+            chartData: chartData,
+            chartDisplay: true
+          })
+      
+      })
+    }
   }
 
-  
 
   render() {
-    // const trendingList = this.state.trending.map(res => {
-    //   return <li key={res}>{res}</li>
-    // })
-    // const timelineData = this.state.timelineData.map(res => {
-    //   return <li key={res.time}>Date: {res.formattedAxisTime} Value: {res.value}</li>
-    // })
     const { formStyle, inputStyle } = styles
     return (
       <div className="App">
         <Header />
         <Wrapper>
           <Card>
-            <Section 
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'baseline',
-              }} 
-              title='Top google searches in '
-            >
-              <Selector onChange={this.handleSelector} list={this.state.selectorLists.year} name='searchRegion' text={'your region'} />
-              <Selector onChange={this.handleSelector} list={this.state.selectorLists.year} name='searchDate' text={'today'} />
+          <Section
+          style={{
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'baseline',
+            textAlign: 'center'
+          }} 
+          
+          >
+             {this.state.trendsResults ? 
+           <Results 
+           list={this.state.trending}
+           onClick={this.resetSearch}
+           style={{display: 'block'}}
+           />
+          :
+          <Results 
+           list={this.state.trending}
+           onClick={this.resetSearch}
+           style={{display: 'none'}}
+           />
+          
+          }
+          </Section>
+          <Section 
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'baseline',
+          }} 
+          title='Top google searches in '
+        >
+           
+            
+              <Selector onChange={this.handleSelector} list={this.state.selectorLists.regions} name='searchRegion' text={'your region'} />
+              <Selector onChange={this.handleSelector} list={this.state.selectorLists.pastDays} name='searchDate' text={'right now'} />
             </Section>
+            
 
-            <button>Go!</button>
-            <Section style={{
+            <button onClick={this.handleSubmit} name='search'>Go!</button>
+            {this.state.chartDisplay
+            ?    <Section style={{
+              marginTop: '10px',
+              alignSelf: 'center',
+              textAlign: 'center'
+            }}>
+              <Chart data={this.state.chartData}/>
+            </Section>
+            :<Section style={{
               flexDirection: 'column',
               alignSelf: 'center',
               textAlign: 'center'
             }}>
               <h2>Trends Over Time</h2>
-              <input style={inputStyle} placeholder={'Bill Gates'} />
+              <input onChange={this.handleSelector} style={inputStyle} name='searchQuery' placeholder={'Bill Gates'} />
               Start Date
             <div style={formStyle}>
-                <Selector onChange={this.handleSelector} list={this.state.selectorLists.year} name='startYear' text={'Year'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.startYear} name='startYear' text={'Year'} />
                 <Selector onChange={this.handleSelector} list={this.state.selectorLists.month} name='startMonth' text={'Month'} />
-                <Selector onChange={this.handleSelector} list={this.state.selectorLists.day} name='startDay' text={'Day'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.startDay} name='startDay' text={'Day'} />
               </div>
               End Date
               <div style={formStyle}>
-                <Selector onChange={this.handleSelector} list={this.state.selectorLists.year} name='endYear' text={'Year'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.endYear} name='endYear' text={'Year'} />
                 <Selector onChange={this.handleSelector} list={this.state.selectorLists.month} name='endMonth' text={'Month'} />
-                <Selector onChange={this.handleSelector} list={this.state.selectorLists.day} name='endDay' text={'Day'} />
+                <Selector onChange={this.handleSelector} list={this.state.selectorLists.endDay} name='endDay' text={'Day'} />
               </div>
             </Section>
-            <button onClick={this.handleSubmit}>Go!</button>
+            }
+            
+            <button onClick={this.handleSubmit} name='timeline'>Go!</button>
+         
           </Card>
         </Wrapper>
       </div>
@@ -185,6 +306,5 @@ const styles = {
   }
 }
 
-
-
 export default App;
+

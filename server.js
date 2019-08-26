@@ -8,10 +8,13 @@ const port = process.env.PORT || 5000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/api/trends', (req, res) => {
+// Top trends
+
+app.post('/api/trends', (req, res) => {
+  const {date, region} = req.body;
   googleTrends.dailyTrends({
-    trendDate: new Date(),
-    geo: 'US',
+    trendDate: new Date(date),
+    geo: region,
   }, function(err, results) {
     if (err) {
       console.log(err);
@@ -21,9 +24,14 @@ app.get('/api/trends', (req, res) => {
   });
 });
 
+// Trends over time
+
 app.post('/api/search', (req, res) => {
-  const {searchQuery, startTime, endTime } = req.body
-  googleTrends.interestOverTime({keyword: searchQuery, startTime: new Date(startTime), endTime: new Date(endTime)})
+  const {keyword, startTime, endTime } = req.body
+  googleTrends.interestOverTime({
+    keyword: keyword, 
+    startTime: new Date(startTime), 
+    endTime: new Date(endTime)})
 .then(function(results){
   res.send(results)
 })
