@@ -4,7 +4,9 @@
   "scripts": {
     "client": "cd client && yarn start",
     "server": "nodemon server.js",
-    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
+    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
+    "build": "cd client && npm run build",
+    "heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "axios": "^0.19.0",
