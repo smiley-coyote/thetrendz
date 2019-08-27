@@ -1,4 +1,5 @@
 const Geos = [
+  {value: 'US', name: 'your region'},
   {value: 'AR', name: 'Argentina'},
   {value: 'AT', name: 'Austria'},
   {value: 'AU', name: 'Australia'},

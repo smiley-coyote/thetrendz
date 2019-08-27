@@ -1,12 +1,14 @@
 .Card {
-  background-color: rgb(235, 235, 235);
+  background-color: rgb(230, 234, 252);
   width: 50%;
-  border-radius: 5px;
-  height: 800px;
+  border-radius: 2px;
+  min-height: 800px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  padding-top: 30px;
+  padding-bottom: 30px;
 }
 
 

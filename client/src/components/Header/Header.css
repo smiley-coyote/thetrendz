@@ -1,0 +1,17 @@
+.Header {
+  display: flex;
+ 
+  text-align: center;
+  background-color: rgb(242, 244, 255);
+  height: 80px;
+}
+
+.Header h1 {
+   flex: 1;
+    font-size: 2.5em;
+ align-self: center;
+}
+
+.Header span {
+  font-size: .5em;
+}

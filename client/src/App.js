@@ -9,7 +9,7 @@ import Section from './components/Section';
 import Geos from './geos';
 import Results from './components/Results';
 import Chart from './components/Chart';
-// import Window from './components/Window';
+import Loader from './components/common/Loader';
 
 class App extends Component {
   constructor(props) {
@@ -21,6 +21,8 @@ class App extends Component {
     chartData: [],
     chartDisplay: false,
     trendsResults: false,
+    loadingList: false,
+    loadingChart: false,
     selectorLists: {
       startYear: this.arrayCreator(2004, new Date().getFullYear()),
       endYear: this.arrayCreator(2004, new Date().getFullYear()),
@@ -45,20 +47,27 @@ class App extends Component {
 
   
 
-  componentDidMount() {
-    // 
-  }
+  // componentDidMount() {
+  //   // 
+  // }
 
   getDates = () => {
     const present = new Date();
       const past = new Date(present);
       const newArr = [];
-      for(let i = 1; i <= 15; i++){
-        if(i === 1){
+      for(let i = 0; i <= 15; i++){
+        if(i === 0){
+          present.setDate(past.getDate() - i)
+          console.log(present)
+          const arrItem = {value: present, name: 'right now'}
+          newArr.push(arrItem)
+        }else if(i === 1){
           present.setDate(past.getDate() - i)
           const arrItem = {value: present, name: 'yesterday'}
           newArr.push(arrItem)
-        } else {
+        }
+        
+        else {
           present.setDate(past.getDate() - i)
           const formattedDate = this.yyyymmdd(present);
           const fullDate = new Date().getFullYear() + '-' + formattedDate
@@ -70,55 +79,21 @@ class App extends Component {
       return newArr;
   }
 
-  callApi = async () => {
-    const searchWord = {
-      searchQuery: this.state.searchQuery,
-      startTime: '2017-01-01',
-      endTime: '2017-12-31'
-    }
-    API.currentTrends().then(res => {
-      const trending = res.data.default.trendingSearchesDays[0].trendingSearches.map(item => item.title.query)
-      this.setState({ trending: trending })
-    })
-    API.searchQuery(searchWord).then(res => {
-      const timelineData = res.data.default.timelineData
-      this.setState({ timelineData: timelineData })
-      console.log(timelineData)
-    })
-  };
-
-  topSearches = () => {
-    API.currentTrends().then(res => {
-      const trending = res.data.default.trendingSearchesDays[0].trendingSearches.map(item => item.title.query)
-      this.setState({ trending: trending })
-    })
-  }
-
-  handleInputChange = event => {
-    const { value } = event.target;
-    this.setState({
-      searchQuery: value
-    });
-  };
-
-  onSubmit = () => {
-    const searchWord = {
-      searchQuery: this.state.searchQuery,
-      startTime: '2017-01-01',
-      endTime: '2017-12-31'
-    }
-    API.searchQuery(searchWord).then(res => {
-      const timelineData = res.data.default.timelineData
-      this.setState({ timelineData: timelineData })
-    })
-  }
-
   arrayCreator = (min, max) => {
     const newArr = []
     for(let i = min; i <= max; i++){
       newArr.push({value:i, name:i})
     }
     return newArr;
+  }
+
+  presentDay = () => {
+    this.setState({
+      endDay: new Date().getDate(),
+      endYear: new Date().getFullYear(),
+      endMonth: new Date().getMonth()
+    })
+   
   }
 
   yyyymmdd = date => {
@@ -134,6 +109,7 @@ class App extends Component {
 
   handleSelector = e => {
     const { name, value } = e.target;
+   if( value !== '- date -' && value !== '- region -'){
     this.setState({
       [name]: value
     }, () => {
@@ -150,11 +126,19 @@ class App extends Component {
       }
     })
   }
+  }
 
   resetSearch = event => {
     event.preventDefault();
     this.setState({
       trendsResults: false
+    })
+  }
+
+  formReset = event => {
+    event.preventDefault();
+    this.setState({
+      chartDisplay: false
     })
   }
 
@@ -173,17 +157,20 @@ class App extends Component {
 
   handleSubmit = event => {
     const { name } = event.target;
+    const {searchDate, searchRegion} = this.state
     event.preventDefault();
-    if(name === 'search'){
-      const searchQuery = {date: this.state.searchDate, region: this.state.searchRegion};
+    if(name === 'search' && searchDate !== undefined){
+      this.setState({loadingList: true})
+      const searchQuery = {date: searchDate, region: searchRegion};
       console.log(searchQuery);
       API.currentTrends(searchQuery).then( res => {
         const trending = res.data.default.trendingSearchesDays[0].trendingSearches.map(item => item.title.query)
         console.log(trending)
-        this.setState({ trending: trending, trendsResults: true })
+        this.setState({ trending: trending, trendsResults: true, loadingList: false })
       })
     }
     if(name === 'timeline'){
+      this.setState({loadingChart: true})
       const {searchQuery, startYear, 
         startMonth, startDay, 
         endYear, endMonth,
@@ -198,7 +185,8 @@ class App extends Component {
         
           this.setState({
             chartData: chartData,
-            chartDisplay: true
+            chartDisplay: true,
+            loadingChart: false
           })
       
       })
@@ -208,35 +196,24 @@ class App extends Component {
 
   render() {
     const { formStyle, inputStyle } = styles
+    const loadingList = this.state.loadingList;
+    const loadingChart = this.state.loadingChart;
+    let loadIconList;
+    let loadIconChart;
+    if(loadingList){
+      loadIconList = <Loader />;
+    }
+    if(loadingChart){
+      loadIconChart = <Loader />;
+    }
     return (
       <div className="App">
         <Header />
         <Wrapper>
           <Card>
-          <Section
-          style={{
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'baseline',
-            textAlign: 'center'
-          }} 
+        
+            
           
-          >
-             {this.state.trendsResults ? 
-           <Results 
-           list={this.state.trending}
-           onClick={this.resetSearch}
-           style={{display: 'block'}}
-           />
-          :
-          <Results 
-           list={this.state.trending}
-           onClick={this.resetSearch}
-           style={{display: 'none'}}
-           />
-          
-          }
-          </Section>
           <Section 
           style={{
             flexDirection: 'row',
@@ -247,19 +224,58 @@ class App extends Component {
         >
            
             
-              <Selector onChange={this.handleSelector} list={this.state.selectorLists.regions} name='searchRegion' text={'your region'} />
-              <Selector onChange={this.handleSelector} list={this.state.selectorLists.pastDays} name='searchDate' text={'right now'} />
+              <Selector onChange={this.handleSelector} list={this.state.selectorLists.regions} name='searchRegion' defaultValue={this.state.selectorLists.regions[0].value} text={'- region -'}/>
+              <Selector onChange={this.handleSelector} list={this.state.selectorLists.pastDays} name='searchDate'  defaultValue={this.state.selectorLists.pastDays[0].value} text={'- date -'}/>
             </Section>
-            
-
             <button onClick={this.handleSubmit} name='search'>Go!</button>
+            {loadIconList}
+            {this.state.trendsResults ? 
+               <Section
+               style={{
+                 flexDirection: 'column',
+                 justifyContent: 'center',
+                 alignItems: 'baseline',
+                 textAlign: 'center',
+                 animation: 'expand .5s linear forwards'
+               }} 
+               
+               >
+           <Results 
+           list={this.state.trending}
+           close={this.resetSearch}
+           style={{display: 'block'}}
+           />
+           </Section>
+          :
+          <Section
+          style={{
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'baseline',
+            textAlign: 'center'
+          }} 
+          
+          >
+          <Results 
+           list={this.state.trending}
+           onClick={this.resetSearch}
+           style={{display: 'none'}}
+           />
+           
+          </Section>
+          }
+          
+
+            <hr />
+
             {this.state.chartDisplay
             ?    <Section style={{
               marginTop: '10px',
               alignSelf: 'center',
-              textAlign: 'center'
+              textAlign: 'center',
+              animation: 'expand .8s linear forwards'
             }}>
-              <Chart data={this.state.chartData}/>
+              <Chart title={this.state.searchQuery} data={this.state.chartData}/>
             </Section>
             :<Section style={{
               flexDirection: 'column',
@@ -280,10 +296,21 @@ class App extends Component {
                 <Selector onChange={this.handleSelector} list={this.state.selectorLists.month} name='endMonth' text={'Month'} />
                 <Selector onChange={this.handleSelector} list={this.state.selectorLists.endDay} name='endDay' text={'Day'} />
               </div>
+              <div style={formStyle}>
+              <input onChange={this.presentDay} type="checkbox" id="presentDay" name="presentDay"
+          />
+            <label for="scales">Present Day</label>
+              </div>
             </Section>
-            }
             
-            <button onClick={this.handleSubmit} name='timeline'>Go!</button>
+            }
+            {loadIconChart}
+            {this.state.chartDisplay===false
+            ? 
+              <button onClick={this.handleSubmit} name='timeline'>Go!</button>
+
+            : <button onClick={this.formReset}>Search Again</button>
+            } 
          
           </Card>
         </Wrapper>

@@ -1,3 +1,25 @@
 .Section {
+  position: relative;
   display: flex;
+  overflow: hidden;
+  animation: reveal .2s linear forwards;
+  max-height: 500px;
+}
+
+@keyframes expand {
+  from {
+    max-height: 0;
+  }
+  to {
+    max-height: 800px;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
