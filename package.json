@@ -1,6 +1,9 @@
 {
-  "name": "example-create-react-app-express",
+  "name": "the-trendz",
   "version": "1.0.0",
+  "engines": {
+    "node": "12.6.0"
+  },
   "scripts": {
     "client": "cd client && yarn start",
     "server": "nodemon server.js",
