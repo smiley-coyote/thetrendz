@@ -9,19 +9,18 @@
     "server": "nodemon server.js",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
     "build": "cd client && npm run build",
-    "heroku-postbuild": "npm run build"
+    "heroku-postbuild": "cd client && npm install && npm install --only=dev --no-shrinkwrap && npm run build"
   },
   "dependencies": {
     "axios": "^0.19.0",
     "body-parser": "^1.19.0",
     "chart.js": "^2.8.0",
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "google-trends-api": "^4.9.0",
     "react-chartjs-2": "^2.7.6"
   },
   "devDependencies": {
     "concurrently": "^4.0.1"
   },
-  "start": "node server.js",
-  "heroku-postbuild": "cd client && npm install && npm install --only=dev --no-shrinkwrap && npm run build"
+  "start": "node server.js"
 }
