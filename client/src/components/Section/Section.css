@@ -23,3 +23,9 @@
     opacity: 1;
   }
 }
+
+@media only screen and (max-width: 800px) {
+  .Section {
+    font-size: 12px;
+  }
+}
