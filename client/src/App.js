@@ -45,11 +45,31 @@ class App extends Component {
   this.arrayCreator = this.arrayCreator.bind(this);
 }
 
-  
+  // Sets item from selector to the state
 
-  // componentDidMount() {
-  //   // 
-  // }
+  handleSelector = e => {
+    const { name, value } = e.target;
+   if( value !== '- date -' && value !== '- region -'){
+    this.setState({
+      [name]: value
+    }, () => {
+      if(name === 'startYear'){
+        const minYear = this.state.startYear
+        const newArray = this.arrayCreator(minYear, new Date().getFullYear());
+        
+        this.setState(prevState => {
+          let selectorLists = Object.assign({}, prevState.selectorLists);  
+          selectorLists.endYear = newArray;                                    
+          return { selectorLists };                                
+        })
+        
+      }
+    })
+  }
+  }
+
+
+// Gets current dates from the last 15 dates and formats them
 
   getDates = () => {
     const present = new Date();
@@ -79,6 +99,8 @@ class App extends Component {
       return newArr;
   }
 
+  // Creates lists of dates for dropboxes
+
   arrayCreator = (min, max) => {
     const newArr = []
     for(let i = min; i <= max; i++){
@@ -86,6 +108,8 @@ class App extends Component {
     }
     return newArr;
   }
+
+  // Gets the current Year, Month, and Day
 
   presentDay = () => {
     this.setState({
@@ -95,6 +119,8 @@ class App extends Component {
     })
    
   }
+
+  // Formats the date to YYYY/MM/DD for compatability
 
   yyyymmdd = date => {
     var d = new Date(date),
@@ -107,26 +133,7 @@ class App extends Component {
     return [month, day].join('-');
   }
 
-  handleSelector = e => {
-    const { name, value } = e.target;
-   if( value !== '- date -' && value !== '- region -'){
-    this.setState({
-      [name]: value
-    }, () => {
-      if(name === 'startYear'){
-        const minYear = this.state.startYear
-        const newArray = this.arrayCreator(minYear, new Date().getFullYear());
-        
-        this.setState(prevState => {
-          let selectorLists = Object.assign({}, prevState.selectorLists);  
-          selectorLists.endYear = newArray;                                    
-          return { selectorLists };                                
-        })
-        
-      }
-    })
-  }
-  }
+  // closes the search results
 
   resetSearch = event => {
     event.preventDefault();
@@ -135,12 +142,16 @@ class App extends Component {
     })
   }
 
+  // closes the chart
+
   formReset = event => {
     event.preventDefault();
     this.setState({
       chartDisplay: false
     })
   }
+
+  // Formats the data for the chart
 
   formatChartData = data => {
     const chartData = {
@@ -154,6 +165,8 @@ class App extends Component {
     console.log(chartData);
     return chartData;
   }
+
+  // Sends a request to API and sets the response to the state
 
   handleSubmit = event => {
     const { name } = event.target;
@@ -208,29 +221,34 @@ class App extends Component {
     }
     return (
       <div className="App">
+
         <Header />
+
         <Wrapper>
+
           <Card>
-        
-            
-          
-          <Section 
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'baseline',
-          }} 
-          title='Top google searches in '
-        >
-           
-            
+
+            {/* Current Trends Section */}
+
+            <Section 
+              style={{
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'baseline',
+              }} 
+            title='Top google searches in '
+            >
               <Selector onChange={this.handleSelector} list={this.state.selectorLists.regions} name='searchRegion' defaultValue={this.state.selectorLists.regions[0].value} text={'- region -'}/>
               <Selector onChange={this.handleSelector} list={this.state.selectorLists.pastDays} name='searchDate'  defaultValue={this.state.selectorLists.pastDays[0].value} text={'- date -'}/>
             </Section>
             <button onClick={this.handleSubmit} name='search'>Go!</button>
+
             {loadIconList}
+
+              {/* Trends results */}
+
             {this.state.trendsResults ? 
-               <Section
+              <Section
                style={{
                  flexDirection: 'column',
                  justifyContent: 'center',
@@ -238,35 +256,35 @@ class App extends Component {
                  textAlign: 'center',
                  animation: 'expand .5s linear forwards'
                }} 
-               
                >
-           <Results 
-           list={this.state.trending}
-           close={this.resetSearch}
-           style={{display: 'block'}}
-           />
-           </Section>
-          :
-          <Section
-          style={{
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'baseline',
-            textAlign: 'center'
-          }} 
-          
-          >
-          <Results 
-           list={this.state.trending}
-           onClick={this.resetSearch}
-           style={{display: 'none'}}
-           />
+              <Results 
+                list={this.state.trending}
+                close={this.resetSearch}
+                style={{display: 'block'}}
+                />
+              </Section>
+              :
+              <Section
+                style={{
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'baseline',
+                textAlign: 'center'
+              }}>
+
+              <Results 
+              list={this.state.trending}
+              onClick={this.resetSearch}
+              style={{display: 'none'}}
+              />
            
           </Section>
           }
           
 
             <hr />
+
+            {/* Interest over time section */}
 
             {this.state.chartDisplay
             ?    <Section style={{
@@ -275,7 +293,11 @@ class App extends Component {
               textAlign: 'center',
               animation: 'expand .8s linear forwards'
             }}>
+
+            {/* Chart display */}
+
               <Chart title={this.state.searchQuery} data={this.state.chartData}/>
+
             </Section>
             :<Section style={{
               flexDirection: 'column',
